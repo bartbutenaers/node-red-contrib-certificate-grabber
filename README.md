@@ -21,7 +21,16 @@ The following example flow shows how to capture the certificate being used to se
 ```
 [{"id":"a4e22d4eae3350e1","type":"debug","z":"fbee74db83781e91","name":"Certificate info","active":true,"tosidebar":true,"console":false,"tostatus":false,"complete":"payload","targetType":"msg","statusVal":"","statusType":"auto","x":760,"y":320,"wires":[]},{"id":"56706c9888b2a2b2","type":"inject","z":"fbee74db83781e91","name":"Inject host & port","props":[{"p":"payload"},{"p":"topic","vt":"str"}],"repeat":"","crontab":"","once":false,"onceDelay":0.1,"topic":"","payload":"{\"host\":\"localhost\",\"port\":1880}","payloadType":"json","x":340,"y":320,"wires":[["fc71b92b91dae266"]]},{"id":"fc71b92b91dae266","type":"certificate-grabber","z":"fbee74db83781e91","name":"","x":550,"y":320,"wires":[["a4e22d4eae3350e1"]]}]
 ```
+It works like this:
 1. Inject a message containing 'localhost' and port 1880.
+
 2. The certificate grabber node wil open a TLS/SSL connection to port 1880 on localhost (where in my case Node-RED is running on https).
+
 3. During the SSL handshake phase, the (Node-RED) server will share its public certificate with this node (that acts as a client).
-4. This node will send an output message, containing the certificate in the payload.
+
+4. This node will send an output message, containing the certificate in the payload:
+
+   ![certificate](https://user-images.githubusercontent.com/14224149/173451096-d40c632d-49eb-4877-a3a2-382b6e793842.png)
+
+   From this certificate you can learn all kind of things (whether it has been expired, and so on ...).
+   
