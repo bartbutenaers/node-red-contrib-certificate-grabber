@@ -1,0 +1,45 @@
+<!--
+  Copyright 2022, Bart Butenaers
+  Licensed under the Apache License, Version 2.0 (the "License");
+  you may not use this file except in compliance with the License.
+  You may obtain a copy of the License at
+  http://www.apache.org/licenses/LICENSE-2.0
+  Unless required by applicable law or agreed to in writing, software
+  distributed under the License is distributed on an "AS IS" BASIS,
+  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  See the License for the specific language governing permissions and
+  limitations under the License.
+-->
+
+<script type="text/javascript">
+    RED.nodes.registerType('certificate-grabber', {
+        category: 'network',
+        color: 'rgb(216, 191, 216)',
+        defaults: {
+            name: {value: ''}
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: 'font-awesome/fa-id-card-o',
+        label: function () {
+            return this.name || 'cert grabber';
+        },
+        paletteLabel: 'cert grabber',
+        align: 'left',
+        oneditprepare: function() { 
+            var node = this;
+        }
+    });
+</script>
+
+<script type="text/x-red" data-template-name="certificate-grabber">
+    <div class="form-row">
+        <label for="node-input-name"><i class="icon-tag"></i> Name</label>
+        <input type="text" id="node-input-name" placeholder="Name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="certificate-grabber">
+    <p>A Node-RED node to grab a certificate from an TLS/SSL connection.</p>
+    <p>When a hostname and port are injected, then this node will open a connection to it and grab the certificate.</p>
+</script>
