@@ -28,9 +28,30 @@ It works like this:
 
 3. During the SSL handshake phase, the (Node-RED) server will share its public certificate with this node (that acts as a client).
 
-4. This node will send an output message, containing the certificate in the payload:
+4. This node will send an output message, containing certificate information in the payload.
 
-   ![certificate](https://user-images.githubusercontent.com/14224149/173451096-d40c632d-49eb-4877-a3a2-382b6e793842.png)
+## Output message
+The `msg.payload` contains the following information about the certificate:
++ ***subject***:
+   + ***C***: The country code of the organisation to which this certificate belongs. 
+   + ***O***: The name of the organisation to which this certificate belongs.
+   + ***CN***: The Common Name which is the hostname of the server to which this certificate belongs.
++ ***issuer***: The CA (certification authorithy) which signed the certificate (GlobalSign, VerySign, LetsEncrypt, ...), or it can be a self signed certificate (when it is not trusted by a CA).
++ ***subjectAlternativeName***: The SAN (Subject Alternative Name) can replace the CN, to specify multiple hostname to which this certificate belongs.  E.g. if multiple hosts have been setup (e.g. for load balancing), which all use the same certificate.
++ ***publicKey***: the public key contained in this certificate.
++ ***validFrom***: date from which the certificate is valid.
++ ***validTo***: date until which the certificate is valid.
++ ***serialNumber***: This unique number can be used e.g. to compare certificates.
++ ***derCertificate***: the X509 certificate as a raw NodeJs binary buffer (in DER format).
++ ***pemCertificate***: the X509 certificate in PEM formate.  This in fact the raw certificate now base64 encoded with some headers and footers:
+   ```
+   -----BEGIN CERTIFICATE-----
+   <the raw certificate as base64 encoded string>
+   -----BEGIN CERTIFICATE-----
+   ```
 
-   From this certificate you can learn all kind of things (whether it has been expired, and so on ...).
-   
+Moreover the `msg.payload` contains some calculated fields for your convenience:
++ ***validFromTimestamp***: date until which the certificate is valid as a numeric timestamp.
++ ***validToTimestamp***: date from which the certificate is valid as a numeric timestamp.
++ ***daysRemaining***: the number of days that the certificate will still be valid.
++ ***daysOverdue***: the number of days that the certificate is already invalid
