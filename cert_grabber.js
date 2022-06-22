@@ -20,7 +20,7 @@
         RED.nodes.createNode(this, config);
         
         const node = this;
-
+        
         node.on('input', function(msg) {
             var options = {
                 host: msg.payload.host,
@@ -32,13 +32,33 @@
             var tlsSocket = tls.connect(options, function () {
                 // Get the certificate in DER format
                 let certificate = tlsSocket.getPeerCertificate();
+                
+                msg.payload = {};
+                msg.payload.subject = certificate.subject;
+                msg.payload.issuer = certificate.issuer;
+                msg.payload.subjectAlternativeName = certificate.subjectaltname;
+                msg.payload.publicKey = certificate.pubkey;
+                msg.payload.validFrom = certificate.valid_from;
+                msg.payload.validTo = certificate.validTo;
+                msg.payload.serialNumber = certificate.valid_to;
+                msg.payload.derCertificate = certificate.raw;
+                msg.payload.pemCertificate = certificate.raw;
 
                 // Convert the raw certificate (in DER format) to PEM format (see https://stackoverflow.com/a/48309802)
                 let prefix = '-----BEGIN CERTIFICATE-----\n';
                 let postfix = '-----END CERTIFICATE-----';
-                certificate.pem = prefix + certificate.raw.toString('base64').match(/.{0,64}/g).join('\n') + postfix;
+                msg.payload.pemCertificate = prefix + certificate.raw.toString('base64').match(/.{0,64}/g).join('\n') + postfix;
+                
+                msg.payload.validToTimestamp = new Date(certificate.valid_to).getTime();
+                msg.payload.validFromTimestamp = new Date(certificate.valid_from).getTime();
+                
+                let now = new Date().getTime();
+                let daysRemaining = Math.round((msg.payload.validToTimestamp - now) / 8.64e7);
 
-                node.send({payload: certificate});
+                msg.payload.daysRemaining = Math.max(0, daysRemaining);
+                msg.payload.daysOverdue = Math.max(0, -daysRemaining);
+
+                node.send(msg);
                
                 tlsSocket.destroy();
             })
