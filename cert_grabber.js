@@ -18,6 +18,7 @@
 
     function CertificateGrabberNode(config) {
         RED.nodes.createNode(this, config);
+        this.timeout = config.timeout;
         
         const node = this;
         
@@ -63,7 +64,7 @@
                 tlsSocket.destroy();
             })
 
-            tlsSocket.setTimeout(1500);
+            tlsSocket.setTimeout(parseInt(node.timeout));
             
             tlsSocket.once('timeout', () => {
                 node.warn("Cannot get certificate due to timeout");
