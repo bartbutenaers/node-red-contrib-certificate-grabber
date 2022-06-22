@@ -16,7 +16,8 @@
         category: 'network',
         color: 'rgb(216, 191, 216)',
         defaults: {
-            name: {value: ''}
+            name: {value: ''},
+            timeout: {value: 30}
         },
         inputs: 1,
         outputs: 1,
@@ -37,9 +38,15 @@
         <label for="node-input-name"><i class="icon-tag"></i> Name</label>
         <input type="text" id="node-input-name" placeholder="Name">
     </div>
+    <div class="form-row">
+        <label for="node-input-timeout"><i class="fa fa-clock-o"></i> Timeout</label>
+        <input type="number" id="node-input-timeout">
+    </div>
 </script>
 
 <script type="text/x-red" data-help-name="certificate-grabber">
     <p>A Node-RED node to grab a certificate from an TLS/SSL connection.</p>
     <p>When a hostname and port are injected, then this node will open a connection to it and grab the certificate.</p>
+    <p><strong>Timeout:</strong><br/>
+    The timeout (in seconds) after which the node should stop trying to connect to the specified host.</p>
 </script>
