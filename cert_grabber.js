@@ -30,14 +30,28 @@
             }
                 
             var tlsSocket = tls.connect(options, function () {
-               let certificate = tlsSocket.getPeerCertificate();
-               node.send({payload: certificate});
+                // Get the certificate in DER format
+                let certificate = tlsSocket.getPeerCertificate();
+
+                // Convert the raw certificate (in DER format) to PEM format (see https://stackoverflow.com/a/48309802)
+                let prefix = '-----BEGIN CERTIFICATE-----\n';
+                let postfix = '-----END CERTIFICATE-----';
+                certificate.pem = prefix + certificate.raw.toString('base64').match(/.{0,64}/g).join('\n') + postfix;
+
+                node.send({payload: certificate});
+               
+                tlsSocket.destroy();
             })
 
             tlsSocket.setTimeout(1500);
+            
+            tlsSocket.once('timeout', () => {
+                node.warn("Cannot get certificate due to timeout");
+                tlsSocket.destroy;
+            })
 
             tlsSocket.on('error', (error) => {
-               node.error(error);
+               node.error("Cannot get certificate due to error: " + error);
                // [ERR_TLS_CERT_ALTNAME_INVALID] Hostname/IP does not match certificate's altnames: Host: zdns.cn. is not in the cert's altnames: DNS:*.fkw.com, DNS:fkw.com
                // unable to verify the first certificate or UNABLE_TO_VERIFY_LEAF_SIGNATURE
             })
