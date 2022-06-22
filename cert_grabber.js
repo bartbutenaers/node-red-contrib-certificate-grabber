@@ -64,7 +64,7 @@
                 tlsSocket.destroy();
             })
 
-            tlsSocket.setTimeout(parseInt(node.timeout));
+            tlsSocket.setTimeout(node.timeout * 1000);
             
             tlsSocket.once('timeout', () => {
                 node.warn("Cannot get certificate due to timeout");
