@@ -41,9 +41,8 @@
                 msg.payload.publicKey = certificate.pubkey;
                 msg.payload.validFrom = certificate.valid_from;
                 msg.payload.validTo = certificate.validTo;
-                msg.payload.serialNumber = certificate.valid_to;
+                msg.payload.serialNumber = certificate.serialNumber;
                 msg.payload.derCertificate = certificate.raw;
-                msg.payload.pemCertificate = certificate.raw;
 
                 // Convert the raw certificate (in DER format) to PEM format (see https://stackoverflow.com/a/48309802)
                 let prefix = '-----BEGIN CERTIFICATE-----\n';
