@@ -40,7 +40,7 @@
                 msg.payload.subjectAlternativeName = certificate.subjectaltname;
                 msg.payload.publicKey = certificate.pubkey;
                 msg.payload.validFrom = certificate.valid_from;
-                msg.payload.validTo = certificate.validTo;
+                msg.payload.validTo = certificate.valid_to;
                 msg.payload.serialNumber = certificate.serialNumber;
                 msg.payload.derCertificate = certificate.raw;
 
