@@ -13,7 +13,9 @@ Please buy my wife a coffee to keep her happy, while I am busy developing Node-R
 <a href="https://www.buymeacoffee.com/bartbutenaers" target="_blank"><img src="https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png" alt="Buy my wife a coffee" style="height: 41px !important;width: 174px !important;box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;-webkit-box-shadow: 0px 3px 2px 0px rgba(190, 190, 190, 0.5) !important;" ></a>
 
 ## Node usage
-This node can be useful in troubleshooting TLS/SSL issues.  For example if you are not sure whether the certificate of your FTPS server is expired, so you simply want to have a look at it.
+This node can be useful in following cases:
++ Troubleshooting TLS/SSL issues.  For example if you are not sure whether the certificate of your FTPS server is expired, so you simply want to have a look at it.
++ To monitor how long a certificate is still valid, or in how many days it will expire.
 
 ### Example flow
 The following example flow shows how to capture the certificate being used to secure your Node-RED installation (in case you have setup https):
