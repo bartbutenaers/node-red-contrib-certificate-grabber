@@ -23,61 +23,84 @@
         const node = this;
         
         node.on('input', function(msg) {
+            if(node.tlsSocket) {
+                node.warn("The previous connection is still active");
+                return;
+            }
+            
             var options = {
                 host: msg.payload.host,
                 port: msg.payload.port,
                 checkServerIdentity: () => undefined,
                 rejectUnauthorized: false
             }
-                
-            var tlsSocket = tls.connect(options, function () {
-                // Get the certificate in DER format
-                let certificate = tlsSocket.getPeerCertificate();
-                
-                msg.payload = {};
-                msg.payload.subject = certificate.subject;
-                msg.payload.issuer = certificate.issuer;
-                msg.payload.subjectAlternativeName = certificate.subjectaltname;
-                msg.payload.publicKey = certificate.pubkey;
-                msg.payload.validFrom = certificate.valid_from;
-                msg.payload.validTo = certificate.valid_to;
-                msg.payload.serialNumber = certificate.serialNumber;
-                msg.payload.derCertificate = certificate.raw;
-
-                // Convert the raw certificate (in DER format) to PEM format (see https://stackoverflow.com/a/48309802)
-                let prefix = '-----BEGIN CERTIFICATE-----\n';
-                let postfix = '-----END CERTIFICATE-----';
-                msg.payload.pemCertificate = prefix + certificate.raw.toString('base64').match(/.{0,64}/g).join('\n') + postfix;
-                
-                msg.payload.validToTimestamp = new Date(certificate.valid_to).getTime();
-                msg.payload.validFromTimestamp = new Date(certificate.valid_from).getTime();
-                
-                let now = new Date().getTime();
-                let daysRemaining = Math.round((msg.payload.validToTimestamp - now) / 8.64e7);
-
-                msg.payload.daysRemaining = Math.max(0, daysRemaining);
-                msg.payload.daysOverdue = Math.max(0, -daysRemaining);
-
-                node.send(msg);
-               
-                tlsSocket.destroy();
-            })
-
-            tlsSocket.setTimeout(node.timeout * 1000);
             
-            tlsSocket.once('timeout', () => {
+            try {
+                node.tlsSocket = tls.connect(options, function () {
+                    // Get the certificate in DER format
+                    let certificate = node.tlsSocket.getPeerCertificate();
+                    
+                    msg.payload = {};
+                    msg.payload.subject = certificate.subject;
+                    msg.payload.issuer = certificate.issuer;
+                    msg.payload.subjectAlternativeName = certificate.subjectaltname;
+                    msg.payload.publicKey = certificate.pubkey;
+                    msg.payload.validFrom = certificate.valid_from;
+                    msg.payload.validTo = certificate.valid_to;
+                    msg.payload.serialNumber = certificate.serialNumber;
+                    msg.payload.derCertificate = certificate.raw;
+
+                    // Convert the raw certificate (in DER format) to PEM format (see https://stackoverflow.com/a/48309802)
+                    let prefix = '-----BEGIN CERTIFICATE-----\n';
+                    let postfix = '-----END CERTIFICATE-----';
+                    msg.payload.pemCertificate = prefix + certificate.raw.toString('base64').match(/.{0,64}/g).join('\n') + postfix;
+                    
+                    msg.payload.validToTimestamp = new Date(certificate.valid_to).getTime();
+                    msg.payload.validFromTimestamp = new Date(certificate.valid_from).getTime();
+                    
+                    let now = new Date().getTime();
+                    let daysRemaining = Math.round((msg.payload.validToTimestamp - now) / 8.64e7);
+
+                    msg.payload.daysRemaining = Math.max(0, daysRemaining);
+                    msg.payload.daysOverdue = Math.max(0, -daysRemaining);
+
+                    node.send(msg);
+                   
+                    node.tlsSocket.destroy();
+                    node.tlsSocket = null;
+                })
+            }
+            catch(err) {
+                node.error("Cannot connect: " + err);
+                node.tlsSocket.destroy;
+                node.tlsSocket = null;
+                return;
+            }
+
+            if(node.timeout > 0) {
+                node.tlsSocket.setTimeout(node.timeout * 1000);
+            }
+            
+            node.tlsSocket.once('timeout', () => {
                 node.warn("Cannot get certificate due to timeout");
-                tlsSocket.destroy;
+                node.tlsSocket.destroy;
+                node.tlsSocket = null;
             })
 
-            tlsSocket.on('error', (error) => {
-               node.error("Cannot get certificate due to error: " + error);
-               // [ERR_TLS_CERT_ALTNAME_INVALID] Hostname/IP does not match certificate's altnames: Host: zdns.cn. is not in the cert's altnames: DNS:*.fkw.com, DNS:fkw.com
-               // unable to verify the first certificate or UNABLE_TO_VERIFY_LEAF_SIGNATURE
+            node.tlsSocket.on('error', (error) => {
+                node.error("Cannot get certificate due to error: " + error);
+                // [ERR_TLS_CERT_ALTNAME_INVALID] Hostname/IP does not match certificate's altnames: Host: zdns.cn. is not in the cert's altnames: DNS:*.fkw.com, DNS:fkw.com
+                // unable to verify the first certificate or UNABLE_TO_VERIFY_LEAF_SIGNATURE
+                node.tlsSocket.destroy;
+                node.tlsSocket = null;
             })
         });
 
         node.on('close', function() {
+            if(node.tlsSocket) {
+                node.tlsSocket.destroy;
+                node.tlsSocket = null;
+            }
         });
     }
         
