@@ -18,6 +18,13 @@
 
     function CertificateGrabberNode(config) {
         RED.nodes.createNode(this, config);
+        // When the following options are undefined, assume that they are being passed via the payload
+        // (for backwards compatibility with nodes before 1.0.2)
+        this.host = config.host || 'payload.host';
+        this.port = config.port || 'payload.port';
+        this.hostType = config.hostType || 'msg';
+        this.portType = config.portType || 'msg';
+        
         this.timeout = config.timeout;
         
         const node = this;
@@ -27,14 +34,49 @@
                 node.warn("The previous connection is still active");
                 return;
             }
-            
+
+            let host;
+
+            if(node.hostType == 'msg') {
+                host =  RED.util.getMessageProperty(msg, node.host);
+            }
+            else { // 'str'
+                host = node.host
+            }
+
+            if(host == undefined) {
+                node.warn("A hostname (or IP address) is required");
+                return;
+            }
+
+            let port;
+
+            if(node.portType == 'msg') {
+                port =  RED.util.getMessageProperty(msg, node.port);
+            }
+            else { // 'str'
+                port = node.port
+            }
+
+            port = parseInt(port); // Returns NaN if not a number
+
+            if(!port == undefined) {
+                node.warn("A port number is required");
+                return;
+            }
+
+            if(isNaN(port) || parseInt(port) < 1 || parseInt(port) > 65535) {
+                node.warn("The port should be an integer number between 1 and 65535");
+                return;
+            }
+
             var options = {
-                host: msg.payload.host,
-                port: msg.payload.port,
+                host: host,
+                port: parseInt(port),
                 checkServerIdentity: () => undefined,
                 rejectUnauthorized: false
             }
-            
+
             try {
                 node.tlsSocket = tls.connect(options, function () {
                     // Get the certificate in DER format
