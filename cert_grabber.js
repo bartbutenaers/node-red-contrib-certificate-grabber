@@ -73,6 +73,8 @@
             var options = {
                 host: host,
                 port: parseInt(port),
+                // Pass SNI hostname to the server to avoid "unrecognized name" response
+                servername: host,
                 checkServerIdentity: () => undefined,
                 rejectUnauthorized: false
             }
@@ -125,16 +127,20 @@
             
             node.tlsSocket.once('timeout', () => {
                 node.warn("Cannot get certificate due to timeout");
-                node.tlsSocket.destroy;
-                node.tlsSocket = null;
+                if(node.tlsSocket) {
+                    node.tlsSocket.destroy;
+                    node.tlsSocket = null;
+                }
             })
 
             node.tlsSocket.on('error', (error) => {
                 node.error("Cannot get certificate due to error: " + error);
-                // [ERR_TLS_CERT_ALTNAME_INVALID] Hostname/IP does not match certificate's altnames: Host: zdns.cn. is not in the cert's altnames: DNS:*.fkw.com, DNS:fkw.com
-                // unable to verify the first certificate or UNABLE_TO_VERIFY_LEAF_SIGNATURE
-                node.tlsSocket.destroy;
-                node.tlsSocket = null;
+                if(node.tlsSocket) {
+                    // [ERR_TLS_CERT_ALTNAME_INVALID] Hostname/IP does not match certificate's altnames: Host: zdns.cn. is not in the cert's altnames: DNS:*.fkw.com, DNS:fkw.com
+                    // unable to verify the first certificate or UNABLE_TO_VERIFY_LEAF_SIGNATURE
+                    node.tlsSocket.destroy;
+                    node.tlsSocket = null;
+                }
             })
         });
 
