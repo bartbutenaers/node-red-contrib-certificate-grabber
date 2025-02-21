@@ -31,7 +31,7 @@
         
         node.on('input', function(msg) {
             if(node.tlsSocket) {
-                node.warn("The previous connection is still active");
+                node.warn("The previous connection is still active", msg);
                 return;
             }
 
@@ -61,12 +61,12 @@
             port = parseInt(port); // Returns NaN if not a number
 
             if(!port == undefined) {
-                node.warn("A port number is required");
+                node.warn("A port number is required", msg);
                 return;
             }
 
             if(isNaN(port) || parseInt(port) < 1 || parseInt(port) > 65535) {
-                node.warn("The port should be an integer number between 1 and 65535");
+                node.warn("The port should be an integer number between 1 and 65535", msg);
                 return;
             }
 
@@ -115,7 +115,7 @@
                 })
             }
             catch(err) {
-                node.error("Cannot connect: " + err);
+                node.error("Cannot connect: " + err, msg);
                 node.tlsSocket.destroy;
                 node.tlsSocket = null;
                 return;
@@ -126,7 +126,7 @@
             }
             
             node.tlsSocket.once('timeout', () => {
-                node.warn("Cannot get certificate due to timeout");
+                node.error("Cannot get certificate due to timeout", msg);
                 if(node.tlsSocket) {
                     node.tlsSocket.destroy;
                     node.tlsSocket = null;
@@ -134,7 +134,7 @@
             })
 
             node.tlsSocket.on('error', (error) => {
-                node.error("Cannot get certificate due to error: " + error);
+                node.error("Cannot get certificate due to error: " + error, msg);
                 if(node.tlsSocket) {
                     // [ERR_TLS_CERT_ALTNAME_INVALID] Hostname/IP does not match certificate's altnames: Host: zdns.cn. is not in the cert's altnames: DNS:*.fkw.com, DNS:fkw.com
                     // unable to verify the first certificate or UNABLE_TO_VERIFY_LEAF_SIGNATURE
